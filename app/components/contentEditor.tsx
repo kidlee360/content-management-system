@@ -3,11 +3,25 @@ import UtilFunction from './utilFunction';
 import RichTextEditor from './richTextEditor';
 import {LuImagePlus} from 'react-icons/lu'
 
-export default function ContentEditor({ edtiorChange }: any) {
+export default function ContentEditor({ edtiorChange, uploadProgress }: any) {
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState<string>('');
   const { generateSlug: slugGenerator } = UtilFunction();
+
+  // Progress UI component (shows during form submission image uploads)
+  const ProgressBar = () => {
+    if (!uploadProgress) return null;
+    const pct = uploadProgress.total > 0 ? Math.round((uploadProgress.completed / uploadProgress.total) * 100) : 0;
+    return (
+      <div className="mb-4">
+        <div className="text-sm text-gray-600 mb-1">Uploading images: {uploadProgress.completed}/{uploadProgress.total} ({pct}%)</div>
+        <div className="w-full bg-gray-200 rounded h-2 overflow-hidden">
+          <div className="bg-blue-500 h-2 rounded" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+    );
+  };
 
 
     const handleTitleChange = (e: any) => {
@@ -28,6 +42,7 @@ export default function ContentEditor({ edtiorChange }: any) {
        <main className="lg:col-span-7 space-y-6">
           <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
             {/* Title Input */}
+            <ProgressBar />
             <input 
               type="text" 
               placeholder="Post Title..." 

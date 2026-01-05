@@ -17,6 +17,7 @@ export default function ImageUploader( {onUploadSuccess} : { onUploadSuccess: (u
     const filePath = `post-images/${fileName}`;
 
     // 1. Upload file to the 'assets' bucket
+    console.log('Uploading file to Supabase:', filePath);
     let { error: uploadError } = await supabase.storage
       .from('post-images')
       .upload(filePath, file);

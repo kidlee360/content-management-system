@@ -6,6 +6,7 @@ import ContentEditor from './components/contentEditor';
 import Header from './components/header';
 import Category from './components/category';
 import axios from 'axios';
+import { uploadImagesInHtml } from '../lib/uploadImages';
 
 export default function CMSPostEditor() {
   interface postData {
@@ -18,7 +19,7 @@ export default function CMSPostEditor() {
   };
   const [postData, setPostData] = useState<postData>({ title: '', content: '', slug: '', featuredImageUrl: '', category: '' });
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
-
+  const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null);
 
   function changeCategory(category: string){
     setPostData((prev) => ({ ...prev, category }));
@@ -33,17 +34,30 @@ export default function CMSPostEditor() {
   };
 
   const submitForm = (buttonText: string | null) => {
-    if (buttonText === 'Publish Post') {
-      setStatus('published');
-    } else {
-      setStatus('draft');
-    }
-    formData(postData, status);
+    const newStatus = buttonText === 'Publish Post' ? 'published' : 'draft';
+    setStatus(newStatus);
+    formData(postData, newStatus);
   }
 
 
   const formData = async (postData: postData, status: 'draft' | 'published') =>{
-      const addPostData = {title: postData.title, content: postData.content, slug: postData.slug, featuredImageUrl: postData.featuredImageUrl, category: postData.category, status: status};
+      // Upload embedded images (data/blob) to Supabase and replace their srcs,
+      // reporting progress to the editor via `uploadProgress`
+      let contentToSubmit = postData.content;
+      try {
+        const result = await uploadImagesInHtml(postData.content, postData.slug, (completed, total) => {
+          setUploadProgress({ completed, total });
+        });
+        contentToSubmit = result.content;
+        if (result.uploaded.length) console.log('Uploaded images:', result.uploaded);
+      } catch (err) {
+        console.error('Error uploading images in content', err);
+      } finally {
+        // clear the visual progress shortly after finishing
+        setTimeout(() => setUploadProgress(null), 800);
+      }
+
+      const addPostData = {title: postData.title, content: contentToSubmit, slug: postData.slug, featuredImageUrl: postData.featuredImageUrl, category: postData.category, status: status};
       console.log("Submitting Post Data:", addPostData);
       // Here you would typically send `addPostData` to your backend API
       try {
@@ -52,6 +66,7 @@ export default function CMSPostEditor() {
         alert('Post submitted successfully!');
         setPostData({ title: '', content: '', slug: '', featuredImageUrl: '', category: '' }); // Reset form
         setStatus('draft'); // Reset status
+        setUploadProgress(null);
       } catch (error) {
         console.error('Error submitting post:', error);
       }
