@@ -9,7 +9,8 @@ const ImageComponent = ({ node, updateAttributes, deleteNode, selected }: any) =
     updateAttributes({ width: `${currentWidth + direction}px` });
   };
 
-  const wrapperClass = `relative group ${selected ? 'ring-2 ring-blue-500' : ''} ${node.attrs.float === 'left' ? 'float-left mr-4' : node.attrs.float === 'right' ? 'float-right ml-4' : node.attrs.float === 'center' ? 'mx-auto block' : 'inline-block'}`;
+  const isCenter = node.attrs.float === 'center';
+  const wrapperClass = `relative group ${selected ? 'ring-2 ring-blue-500' : ''} ${node.attrs.float === 'left' ? 'float-left mr-4' : node.attrs.float === 'right' ? 'float-right ml-4' : isCenter ? 'w-full flex justify-center' : 'inline-block'}`;
 
   return (
     <NodeViewWrapper className={wrapperClass}>
@@ -17,7 +18,7 @@ const ImageComponent = ({ node, updateAttributes, deleteNode, selected }: any) =
         <img
           src={node.attrs.src}
           style={{ width: node.attrs.width, height: 'auto' }}
-          className="rounded-lg resizable-image block"
+          className={`rounded-lg resizable-image ${isCenter ? 'mx-auto block' : 'block'}`}
         />
         
         {/* Delete Button - Appears on Hover or Selection */}

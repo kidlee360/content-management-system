@@ -1,6 +1,22 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+
+export async function GET( req: Request, res: Response) {
+  const { searchParams } = new URL(req.url);
+  const reportName = searchParams.get('reportName');
+  if (reportName === 'publishedPosts') {
+  try {
+    const result = await pool.query('SELECT * FROM posts WHERE status = $1 ORDER BY created_at DESC', ['published']);
+    return NextResponse.json(result.rows, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+  }
+  } else {
+    return NextResponse.json({ error: 'Invalid reportName parameter' }, { status: 400 });
+  }
+}
+
 export async function POST(req: Request, res: Response) {
   const body = await req.json();
   console.log('Received POST request with body:', body);

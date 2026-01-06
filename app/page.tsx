@@ -7,6 +7,7 @@ import Header from './components/header';
 import Category from './components/category';
 import axios from 'axios';
 import { uploadImagesInHtml } from '../lib/uploadImages';
+import { useRouter } from 'next/navigation';
 
 export default function CMSPostEditor() {
   interface postData {
@@ -20,6 +21,7 @@ export default function CMSPostEditor() {
   const [postData, setPostData] = useState<postData>({ title: '', content: '', slug: '', featuredImageUrl: '', category: '' });
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
   const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null);
+  const router = useRouter();
 
   function changeCategory(category: string){
     setPostData((prev) => ({ ...prev, category }));
@@ -83,6 +85,7 @@ export default function CMSPostEditor() {
         
         {/* LEFT COLUMN: The Content Canvas */}
         <ContentEditor edtiorChange={submitEditor} />
+        <button onClick={() => router.push('/blogDisplay')}>Go Back</button>
 
         {/* RIGHT COLUMN: The Metadata Sidebar */}
         <aside className="lg:col-span-3 space-y-6">

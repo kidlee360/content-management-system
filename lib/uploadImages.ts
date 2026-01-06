@@ -41,7 +41,7 @@ export async function uploadImagesInHtml(content: string, slug = 'post', onProgr
       }
 
       const { data: publicData } = supabase.storage
-        .from('images')
+        .from('post-images')
         .getPublicUrl(filename);
 
       const publicUrl = publicData.publicUrl;

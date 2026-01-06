@@ -82,6 +82,27 @@ const handleEditorChange = () => {
         >
           <LuCode size={16} />
         </button>
+         <button
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          className={`p-1.5 rounded hover:bg-gray-700 ${editor.isActive('textAlign', { align: 'left' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Align Text Left"
+        >
+          <LuAlignLeft size={16} />
+        </button>
+        <button
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          className={`p-1.5 rounded hover:bg-gray-700 ${editor.isActive('textAlign', { align: 'center' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Align Text Center"
+        >
+          <LuAlignCenter size={16} />
+        </button>
+        <button
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          className={`p-1.5 rounded hover:bg-gray-700 ${editor.isActive('textAlign', { align: 'right' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Align Texts Right"
+        >
+          <LuAlignRight size={16} />
+        </button>
         <div className="w-[1px] h-4 bg-gray-600 mx-1" />
         <button
           onClick={() => {
@@ -91,6 +112,27 @@ const handleEditorChange = () => {
           className={`p-1.5 rounded hover:bg-gray-700 ${editor.isActive('link') ? 'text-blue-400' : ''}`}
         >
           <LuLink size={16} />
+        </button>
+        <button
+          onClick={() => editor.chain().focus().updateAttributes('image', { float: 'left' }).run()}
+          className={`p-1.5 rounded hover:bg-gray-700 ${editor.isActive('image', { float: 'left' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Float image left"
+        >
+          <LuAlignLeft size={16} />
+        </button>
+        <button
+          onClick={() => editor.chain().focus().updateAttributes('image', { float: 'center' }).run()}
+          className={`p-1.5 rounded hover:bg-gray-700 ${editor.isActive('image', { float: 'center' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Center image"
+        >
+          <LuAlignCenter size={16} />
+        </button>
+        <button
+          onClick={() => editor.chain().focus().updateAttributes('image', { float: 'right' }).run()}
+          className={`p-1.5 rounded hover:bg-gray-700 ${editor.isActive('image', { float: 'right' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Float image right"
+        >
+          <LuAlignRight size={16} />
         </button>
       </BubbleMenu>
       {/* TOOLBAR */}
@@ -126,23 +168,26 @@ const handleEditorChange = () => {
         <button
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
           className={`p-2 rounded ${editor.isActive('textAlign', { align: 'left' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Align Text Left"
         >
           <LuAlignLeft size={18} />
         </button>
         <button
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
           className={`p-2 rounded ${editor.isActive('textAlign', { align: 'center' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Align Text Center"
         >
           <LuAlignCenter size={18} />
         </button>
         <button
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
           className={`p-2 rounded ${editor.isActive('textAlign', { align: 'right' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+          title="Align Texts Right"
         >
           <LuAlignRight size={18} />
         </button>
 
-        <button onClick={handleImageUpload} className="p-2 rounded hover:bg-gray-200">
+        <button onClick={handleImageUpload} className="p-2 rounded hover:bg-gray-200" title="Insert Image">
           <LuImagePlus size={20} />
         </button>
 
