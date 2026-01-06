@@ -61,11 +61,12 @@ export default function PostPage() {
     const DOMPurify = require('isomorphic-dompurify');
     
     const clean = DOMPurify.sanitize(post.content || '', {
-      ADD_ATTR: ['style', 'float'],
+      ADD_ATTR: ['style', 'float', 'class'],
       ADD_TAGS: ['iframe'],
     });
 
     setSanitizedHtml(clean);
+    console.log("RAW HTML:", post.content);
   }, [post]);
 
   // 3. Early returns for Loading and Error states
@@ -100,30 +101,77 @@ export default function PostPage() {
       />
 
       <style jsx global>{`
-        .prose img {
-          display: inline-block;
-          max-width: 100% !important;
-          height: auto !important;
-          border-radius: 8px;
-        }
-        img[style*="float: left"] {
-          margin-right: 1.5rem;
-          margin-bottom: 1rem;
-          float: left !important;
-        }
-        img[style*="float: right"] {
-          margin-left: 1.5rem;
-          margin-bottom: 1rem;
-          float: right !important;
-        }
-        @media (max-width: 640px) {
-          .prose img {
-            float: none !important;
-            margin: 1rem 0 !important;
-            width: 100% !important;
-          }
-        }
-      `}</style>
+  /* 1. Force the H1 to be massive */
+  .prose h1, .prose h1 strong {
+    display: block !important;
+    font-size: 3rem !important; 
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    margin-bottom: 2rem !important;
+  }
+
+  /* 2. Force the H2 to be large */
+  .prose h2, .prose h2 strong {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    margin-top: 2.5rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* 2. THE MAGIC FIX: This targets the 'float' attribute specifically */
+  img[float="left"] {
+    float: left !important;
+    margin-right: 20px !important;
+    margin-bottom: 10px !important;
+    display: block !important;
+  }
+
+  img[float="right"] {
+    float: right !important;
+    margin-left: 20px !important;
+    margin-bottom: 10px !important;
+    display: block !important;
+  }
+
+  /* Just in case Tiptap puts it in style */
+  img[style*="float: left"] {
+    float: left !important;
+    margin-right: 20px !important;
+  }
+
+  img[style*="float: right"] {
+    float: right !important;
+    margin-left: 20px !important;
+  }
+
+  /* Fix for the paragraph box trapping the image */
+  .prose p {
+    display: flow-root !important; 
+  }
+
+  .prose img {
+  /* This ensures images NEVER go wider than the phone screen */
+  max-width: 100% !important; 
+  height: auto !important;
+  border-radius: 8px;
+  }
+
+  @media (max-width: 640px) {
+  .prose h1, .prose h1 strong {
+    font-size: 2rem !important; /* Shrinks the headline slightly on phones */
+  }
+
+  .prose h2, .prose h2 strong {
+    font-size: 1.75rem !important; /* Shrinks H2 on phones */
+  }
+
+  .prose img {
+    float: none !important;
+    margin: 1rem 0 !important;
+    width: 100% !important;
+  }
+}
+`}</style>
     </article>
   );
 }

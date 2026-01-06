@@ -58,12 +58,25 @@ const ImageComponent = ({ node, updateAttributes, deleteNode, selected }: any) =
 
 export const ResizableImage = Image.extend({
   addAttributes() {
-    return {
-      ...this.parent?.(),
-      width: { default: '300px' },
-      float: { default: 'none' }, // 'none' | 'left' | 'right' | 'center'
-    };
-  },
+  return {
+    ...this.parent?.(),
+    width: {
+      default: '300px',
+      // This logic ensures that every time Tiptap saves, 
+      // it writes a perfect CSS style string.
+      renderHTML: (attributes) => {
+        return {
+          style: `width: ${attributes.width}; float: ${attributes.float || 'none'}; height: auto;`,
+        };
+      },
+    },
+    float: {
+      default: 'none',
+      // We keep the attribute in the background so the editor 
+      // can "remember" the state of the buttons.
+    },
+  };
+},
   addNodeView() {
     return ReactNodeViewRenderer(ImageComponent);
   },

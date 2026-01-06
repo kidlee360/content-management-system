@@ -255,6 +255,7 @@ const handleEditorChange = () => {
           margin-left: auto;
           margin-right: auto;
         }
+        .prose p { display: flow-root; }  
       `}</style>
     </div>
   );
