@@ -3,6 +3,9 @@
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import RelatedPosts from './RelatedPosts';
+import NewsletterSignup from './NewsLetter';
+import LikeButton from './LikeButton';
 
 // Move ShareButtons outside so it's a clean, reusable component
 const ShareButtons = ({ title, slug }: { title: string, slug: string }) => {
@@ -64,9 +67,21 @@ export default function PostPage() {
         className="prose prose-lg max-w-none" 
         dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
       />
-
-      {/* RENDER THE BUTTONS HERE */}
+      
+    {/* LIKE BUTTON & SHARE BUTTONS */}
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mt-8">
+      <LikeButton postId={post.id} initialLikes={post.likes || 0} />
       <ShareButtons title={post.title} slug={post.slug} />
+    </div>
+
+    {/* RELATED POSTS */}
+    <RelatedPosts category={post.category} currentId={post.id} />
+
+    {/* NEWSLETTER SIGNUP */}
+    <NewsletterSignup />
+
+    {/* Style JSX block ... */}
+
 
       <style jsx global>{`
         /* Keep all your fixed float and H1 CSS here */

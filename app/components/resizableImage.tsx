@@ -37,7 +37,7 @@ const ImageComponent = ({ node, updateAttributes, deleteNode, selected }: any) =
             const startWidth = parseInt(node.attrs.width) || 300;
 
             const onMouseMove = (mouseMoveEvent: MouseEvent) => {
-              const newWidth = startWidth + (mouseMoveEvent.clientX - startX);
+              const newWidth = Math.max(50, startWidth + (mouseMoveEvent.clientX - startX));
               updateAttributes({ width: `${newWidth}px` });
             };
 
@@ -66,7 +66,9 @@ export const ResizableImage = Image.extend({
       // it writes a perfect CSS style string.
       renderHTML: (attributes) => {
         return {
-          style: `width: ${attributes.width}; float: ${attributes.float || 'none'}; height: auto;`,
+          style: `width: ${attributes.width}; float: ${attributes.float === 'center' ? 'none' : (attributes.float || 'none')}; height: auto;`,
+          loading: 'lazy', // browser won't download until image is near viewport
+          decoding: 'async', //keeps the page smooth during image load
         };
       },
     },
