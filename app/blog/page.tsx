@@ -1,177 +1,54 @@
-"use client";
+// app/blog/page.tsx
+import { Metadata } from 'next';
+import PostPage from './BlogClient';
+import pool from '@/lib/db';
 
-import { useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+export async function generateMetadata({ searchParams }: { searchParams: { slug?: string } }): Promise<Metadata> {
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const slug = resolvedSearchParams.slug;
+  if (!slug) return { title: 'Blog Feed' };
 
-interface PostRow {
-  id: number;
-  title: string;
-  slug: string;
-  content: string;
-  category: string;
-  updated_at?: string;
-  created_at?: string;
-}
+  try {
+    // We fetch from your local API route
+    // Note: On the server, we often need the full URL (http://localhost:3000)
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    //const res = await fetch(`${baseUrl}/api/posts/slug?slug=${slug}`);
+    //const post = await res.json();
 
-export default function PostPage() {
-  const searchParams = useSearchParams();
-  const slug = searchParams.get('slug');
+    // Query the database directly
+    const result = await pool.query('SELECT * FROM posts WHERE slug = $1 LIMIT 1', [slug]);
+    if (!result.rows || result.rows.length === 0) return { title: 'Post Not Found' };
+    const post = result.rows[0];
 
-  const [post, setPost] = useState<PostRow | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [sanitizedHtml, setSanitizedHtml] = useState('');
+    if (!post) return { title: 'Post Not Found' };
 
-  // 1. Fetch the post data
-  useEffect(() => {
-    const fetchPost = async () => {
-      if (!slug || slug === 'undefined') {
-        setError('Invalid or missing post slug.');
-        setLoading(false);
-        return;
-      }
+    // Clean description (strips HTML tags)
+    const description = post.content?.replace(/<[^>]+>/g, '').slice(0, 160) || "";
+    
+    // Find the first Supabase image URL in the content
+    const imageMatch = post.content?.match(/<img src="([^"]+)"/);
+    const ogImage = imageMatch ? imageMatch[1] : `${baseUrl}/default-og.png`;
 
-      setLoading(true);
-      setError(null);
-      try {
-        console.log('Fetching post with slug:', slug);
-        const response = await axios.get(`/api/posts/slug?slug=${slug}`);
-        if (!response.data) {
-          throw new Error('Failed to fetch post');
-        }
-        setPost(response.data);
-      } catch (err) {
-        console.error('Error fetching post by slug:', err);
-        setError('Error loading post.');
-      } finally {
-        setLoading(false);
+
+    return {
+      title: post.title,
+      description: description,
+      openGraph: {
+        title: post.title,
+        description: description,
+        images: [{ url: ogImage }],
+        type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        images: [ogImage],
       }
     };
-
-    fetchPost();
-  }, [slug]);
-
-  // 2. Sanitize content once post is loaded
-  useEffect(() => {
-    // This guard clause prevents the "post is possibly null" error
-    if (!post) return;
-
-    // We use require inside useEffect to ensure it only loads in the browser
-    const DOMPurify = require('isomorphic-dompurify');
-    
-    const clean = DOMPurify.sanitize(post.content || '', {
-      ADD_ATTR: ['style', 'float', 'class'],
-      ADD_TAGS: ['iframe'],
-    });
-
-    setSanitizedHtml(clean);
-    console.log("RAW HTML:", post.content);
-  }, [post]);
-
-  // 3. Early returns for Loading and Error states
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
-  if (!post) return <div className="p-8 text-center">Post not found.</div>;
-
-  // 4. Data formatting (post is guaranteed to exist here)
-  const dateStr = post.updated_at || post.created_at || null;
-  const formattedDate = dateStr 
-    ? new Date(String(dateStr)).toLocaleDateString('en-US', { 
-        month: 'long', 
-        day: 'numeric', 
-        year: 'numeric' 
-      }) 
-    : 'Unknown';
-
-  return (
-    <article className="max-w-4xl mx-auto px-4 py-12">
-      <header className="mb-8 border-b pb-8">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
-          {post.title}
-        </h1>
-        <div className="text-gray-500 text-sm">
-          Published on {formattedDate} • <span className="text-gray-700">{post.category || 'Uncategorized'}</span>
-        </div>
-      </header>
-
-      <div
-        className="prose prose-lg prose-blue max-w-none prose-img:rounded-xl prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-      />
-
-      <style jsx global>{`
-  /* 1. Force the H1 to be massive */
-  .prose h1, .prose h1 strong {
-    display: block !important;
-    font-size: 3rem !important; 
-    font-weight: 900 !important;
-    line-height: 1 !important;
-    margin-bottom: 2rem !important;
-  }
-
-  /* 2. Force the H2 to be large */
-  .prose h2, .prose h2 strong {
-    font-size: 2.5rem !important;
-    font-weight: 800 !important;
-    margin-top: 2.5rem !important;
-    margin-bottom: 1.5rem !important;
-  }
-
-  /* 2. THE MAGIC FIX: This targets the 'float' attribute specifically */
-  img[float="left"] {
-    float: left !important;
-    margin-right: 20px !important;
-    margin-bottom: 10px !important;
-    display: block !important;
-  }
-
-  img[float="right"] {
-    float: right !important;
-    margin-left: 20px !important;
-    margin-bottom: 10px !important;
-    display: block !important;
-  }
-
-  /* Just in case Tiptap puts it in style */
-  img[style*="float: left"] {
-    float: left !important;
-    margin-right: 20px !important;
-  }
-
-  img[style*="float: right"] {
-    float: right !important;
-    margin-left: 20px !important;
-  }
-
-  /* Fix for the paragraph box trapping the image */
-  .prose p {
-    display: flow-root !important; 
-  }
-
-  .prose img {
-  /* This ensures images NEVER go wider than the phone screen */
-  max-width: 100% !important; 
-  height: auto !important;
-  border-radius: 8px;
-  }
-
-  @media (max-width: 640px) {
-  .prose h1, .prose h1 strong {
-    font-size: 2rem !important; /* Shrinks the headline slightly on phones */
-  }
-
-  .prose h2, .prose h2 strong {
-    font-size: 1.75rem !important; /* Shrinks H2 on phones */
-  }
-
-  .prose img {
-    float: none !important;
-    margin: 1rem 0 !important;
-    width: 100% !important;
+  } catch (error) {
+    return { title: 'Blog Post' };
   }
 }
-`}</style>
-    </article>
-  );
+
+export default function Page() {
+  return <PostPage />;
 }
