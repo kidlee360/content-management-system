@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 
 const LikeButton = ({ postId, initialLikes }: { postId: number, initialLikes: number }) => {
@@ -10,6 +11,7 @@ const LikeButton = ({ postId, initialLikes }: { postId: number, initialLikes: nu
   const storageKey = `liked_${postId}`;
   if (localStorage.getItem(storageKey)){
     setHasLiked(true);
+    toast.info("You've already liked this post!");
     return;
   } ; // Already liked!
   
@@ -17,12 +19,14 @@ const LikeButton = ({ postId, initialLikes }: { postId: number, initialLikes: nu
     setLikes(prev => prev + 1);
     localStorage.setItem(storageKey, 'true'); // Save to browser
     await axios.post(`/api/posts/like`, { postId });
-    setHasLiked(true)
+    setHasLiked(true);
+    toast.success('Post liked!', { icon: '❤️' });
   } catch (err) {
     // ... error handling
     console.error("Failed to like the post", err);
     setLikes(prev => prev - 1);
     localStorage.removeItem(storageKey);
+    toast.error('Failed to save like. Try again?');
   }
 };
 

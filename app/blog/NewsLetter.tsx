@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 
 
@@ -12,10 +13,12 @@ const NewsletterSignup = () => {
     setStatus('loading');
     try {
       await axios.post('/api/newsletter', { email });
+      toast.success('Welcome to the club! Check your inbox soon.'); // Success Toast
       setStatus('success');
       setEmail('');
     } catch (err) {
       setStatus('error');
+      toast.error('That email looks like it’s already subscribed.'); // Error Toast
     }
   };
 

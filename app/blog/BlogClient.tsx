@@ -54,6 +54,20 @@ export default function PostPage() {
     setSanitizedHtml(clean);
   }, [post]);
 
+    // Inside your PostPage component in BlogClient.tsx
+
+  useEffect(() => {
+    if (!slug) return;
+  
+    // We wait 2 seconds before counting a view. 
+    // This prevents "accidental" clicks or bots from inflating your numbers.
+    const timer = setTimeout(() => {
+      axios.post('/api/posts/views', { slug }).catch(err => console.error("View track failed", err));
+    }, 2000);
+  
+    return () => clearTimeout(timer);
+  }, [slug]);
+
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (!post) return <div className="p-8 text-center">Post not found.</div>;
 
