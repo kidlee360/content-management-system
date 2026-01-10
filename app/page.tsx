@@ -1,101 +1,146 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation'; // Added searchParams
 import ImageUploader from './components/file';
 import ContentEditor from './components/contentEditor';
 import Header from './components/header';
 import Category from './components/category';
 import axios from 'axios';
 import { uploadImagesInHtml } from '../lib/uploadImages';
-import { useRouter } from 'next/navigation';
 
 export default function CMSPostEditor() {
   interface postData {
+    id?: number; // Added ID to the interface
     title: string;
     content: string;
     slug: string;
     featuredImageUrl: string;
-    category: string
+    category: string;
+  }
 
-  };
   const [postData, setPostData] = useState<postData>({ title: '', content: '', slug: '', featuredImageUrl: '', category: '' });
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
   const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null);
-  const router = useRouter();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  function changeCategory(category: string){
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const postId = searchParams.get('id');
+
+  // EFFECT: Detect if we are editing an existing post
+  useEffect(() => {
+    if (postId) {
+      setIsEditMode(true);
+      fetchExistingPost(postId);
+    }
+  }, [postId]);
+
+  const fetchExistingPost = async (id: string) => {
+    setIsLoading(true);
+    try {
+      // Create an API route or use your existing post fetcher
+      const response = await axios.get(`/api/posts/${id}`); 
+      const post = response.data;
+      
+      setPostData({
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        slug: post.slug,
+        featuredImageUrl: post.featured_image_url || '',
+        category: post.category || ''
+      });
+      setStatus(post.status);
+    } catch (error) {
+      console.error("Error fetching post for edit:", error);
+      alert("Could not load post data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const changeCategory = (category: string) => {
     setPostData((prev) => ({ ...prev, category }));
   }
+
   const handleImageUpload = (url: string) => {
     setPostData((prev) => ({ ...prev, featuredImageUrl: url }));
   };
 
   const submitEditor = (title: string, content: string, slug: string) => {
     setPostData((prev) => ({ ...prev, title, content, slug }));
-    console.log(postData);
   };
 
   const submitForm = (buttonText: string | null) => {
     const newStatus = buttonText === 'Publish Post' ? 'published' : 'draft';
-    setStatus(newStatus);
     formData(postData, newStatus);
   }
 
-
-  const formData = async (postData: postData, status: 'draft' | 'published') =>{
-      // Upload embedded images (data/blob) to Supabase and replace their srcs,
-      // reporting progress to the editor via `uploadProgress`
-      let contentToSubmit = postData.content;
-      try {
-        const result = await uploadImagesInHtml(postData.content, postData.slug, (completed, total) => {
-          setUploadProgress({ completed, total });
-        });
-        contentToSubmit = result.content;
-        if (result.uploaded.length) console.log('Uploaded images:', result.uploaded);
-      } catch (err) {
-        console.error('Error uploading images in content', err);
-      } finally {
-        // clear the visual progress shortly after finishing
-        setTimeout(() => setUploadProgress(null), 800);
-      }
-
-      const addPostData = {title: postData.title, content: contentToSubmit, slug: postData.slug, featuredImageUrl: postData.featuredImageUrl, category: postData.category, status: status};
-      console.log("Submitting Post Data:", addPostData);
-      // Here you would typically send `addPostData` to your backend API
-      try {
-        const response = await axios.post('/api/posts', addPostData);
-        console.log('Post submitted successfully:', response.data);
-        alert('Post submitted successfully!');
-        setPostData({ title: '', content: '', slug: '', featuredImageUrl: '', category: '' }); // Reset form
-        setStatus('draft'); // Reset status
-        setUploadProgress(null);
-      } catch (error) {
-        console.error('Error submitting post:', error);
-      }
-
+  const formData = async (postData: postData, targetStatus: 'draft' | 'published') => {
+    let contentToSubmit = postData.content;
+    
+    // 1. Upload images from HTML
+    try {
+      const result = await uploadImagesInHtml(postData.content, postData.slug, (completed, total) => {
+        setUploadProgress({ completed, total });
+      });
+      contentToSubmit = result.content;
+    } catch (err) {
+      console.error('Error uploading images:', err);
+    } finally {
+      setTimeout(() => setUploadProgress(null), 800);
     }
+
+    const payload = {
+      ...postData,
+      content: contentToSubmit,
+      status: targetStatus
+    };
+
+    // 2. Submit to Backend (POST for new, PUT for existing)
+    try {
+      if (isEditMode && postId) {
+        // UPDATE EXISTING
+        await axios.put(`/api/posts/${postId}`, payload);
+        alert('Post updated successfully!');
+      } else {
+        // CREATE NEW
+        await axios.post('/api/posts', payload);
+        alert('Post created successfully!');
+        // Redirect to edit mode for the new post or reset
+        router.push('/admin/dashboard'); 
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to save post.');
+    }
+  };
+
+  if (isLoading) return <div className="p-20 text-center">Loading post data...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      {/* Top Header Bar */}
       <Header bClicked={submitForm} />
-
-      {/* Main Grid: Left (70%) and Right (30%) */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
         
-        {/* LEFT COLUMN: The Content Canvas */}
-        <ContentEditor edtiorChange={submitEditor} />
-        <button onClick={() => router.push('/blogDisplay')}>Go Back</button>
-
-        {/* RIGHT COLUMN: The Metadata Sidebar */}
+        {/* Pass the data into ContentEditor */}
+        <ContentEditor 
+          edtiorChange={submitEditor} 
+          uploadProgress={uploadProgress} 
+          existingPost={isEditMode ? postData : null} 
+        />
+        
         <aside className="lg:col-span-3 space-y-6">
-          
-          {/* Featured Image Section */}
-          <ImageUploader onUploadSuccess={handleImageUpload} />
-
-          {/* Status & Category Section */}
-          <Category categoryChange={changeCategory} />
-
+          <ImageUploader 
+            onUploadSuccess={handleImageUpload} 
+            //initialImage={postData.featuredImageUrl} 
+          />
+          <Category 
+            categoryChange={changeCategory} 
+            initialCategory={postData.category} 
+          />
         </aside>
       </div>
     </div>

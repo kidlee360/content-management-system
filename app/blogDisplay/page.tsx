@@ -15,6 +15,7 @@ interface BlogPostDisplay {
   category: string;
   updated_at: string;
   created_at?: string;
+  views: number;
 }
 
 const [posts, setPosts] = useState<BlogPostDisplay[]>([]);
@@ -185,7 +186,19 @@ useEffect(() => {
             return (
               <article key={p.id} className="mb-8 border-b pb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-1">{p.title}</h2>
-                <div className="text-sm text-gray-500 mb-2">Published on {formatted} • <span className="text-gray-700">{p.category || 'Uncategorized'}</span></div>
+                <div className="text-gray-500 text-sm flex items-center gap-3">
+                  <span>Published on {formatted}</span>
+                  <span>•</span>
+                  <span className="text-gray-700">{p.category}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {p.views || 0} views
+                  </span>
+                </div>
                 <p className="text-gray-700 mb-3">{excerpt}</p>
                 {p.slug ? (
                   <Link href={`/blog?slug=${p.slug}`} className="text-blue-600 hover:underline">Read more</Link>

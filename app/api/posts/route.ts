@@ -78,3 +78,19 @@ export async function POST(req: Request, res: Response) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
+
+export async function PUT(req: Request, res: Response) {
+  const body = await req.json();
+  const { id, title, content, slug, featuredImageUrl, category, status } = body;
+  const categoryValue = category || 'General';
+
+  try {
+    const updatedPost = await pool.query(
+      'UPDATE posts SET title = $1, content = $2, slug = $3, status = $4, featured_image_url = $5, category = $6 WHERE id = $7 RETURNING *',
+      [title, content, slug, status, featuredImageUrl, categoryValue, id]
+    );
+    return NextResponse.json(updatedPost.rows[0], { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+  }
+}

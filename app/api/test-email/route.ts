@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const data = await resend.emails.send({
       from: 'onboarding@resend.dev', // Use this default sender for sandbox
-      to: 'ugoleevi@gmail.com', // Change this to YOUR email
+      to: 'exampleemail@gmail.com', // Change this to YOUR email
       subject: 'Test: Blog System Integration',
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee;">

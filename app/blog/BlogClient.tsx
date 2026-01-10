@@ -72,13 +72,14 @@ export default function PostPage() {
   if (!post) return <div className="p-8 text-center">Post not found.</div>;
 
   return (
-    <article className="max-w-4xl mx-auto px-4 py-12">
-      <header className="mb-8 border-b pb-8">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">{post.title}</h1>
+    <article className="max-w-4xl mx-auto px-4 py-12 bg-white dark:bg-gray-950 transition-colors">
+      <header className="mb-8 border-b pb-8 dark:border-gray-800 pb-8">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{post.title}</h1>
       </header>
 
+      {/* Adding 'dark:prose-invert' makes Tailwind Typography auto-adjust text colors */}
       <div 
-        className="prose prose-lg max-w-none" 
+        className="prose prose-lg dark:prose-invert max-w-none prose-p:text-gray-700 dark:prose-p:text-gray-300" 
         dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
       />
       
@@ -104,6 +105,15 @@ export default function PostPage() {
         img[float="left"], img[style*="float: left"] { float: left !important; margin-right: 20px !important; }
         img[float="right"], img[style*="float: right"] { float: right !important; margin-left: 20px !important; }
         .prose p { display: flow-root !important; }
+        .dark .prose h1, .dark .prose h1 strong {
+          color: #ffffff !important;
+        }
+        .dark .prose p {
+          color: #d1d5db !important;
+        }
+        .dark img {
+          border: 1px solid #374151;
+        }
         @media (max-width: 768px) {
           .prose h1, .prose h1 strong { font-size: 2.25rem !important; }
           .prose h2, .prose h2 strong { font-size: 1.875rem !important; }
