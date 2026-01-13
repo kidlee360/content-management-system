@@ -242,12 +242,12 @@ const handleEditorChange = () => {
         /* Floats for images so text can wrap */
         .ProseMirror .float-left {
           float: left;
-          margin-right: 1rem;
+          margin-right: 1.5rem;
           margin-bottom: 1rem;
         }
         .ProseMirror .float-right {
           float: right;
-          margin-left: 1rem;
+          margin-left: 1.5rem;
           margin-bottom: 1rem;
         }
         .ProseMirror .mx-auto {
@@ -256,6 +256,11 @@ const handleEditorChange = () => {
           margin-right: auto;
         }
         .prose p { display: flow-root; }  
+        /* Stop headlines from jumping up into the space next to small images */
+        .prose h1, .prose h2, .prose h3 {
+           clear: both;
+          margin-top: 2rem;
+        }
       `}</style>
     </div>
   );

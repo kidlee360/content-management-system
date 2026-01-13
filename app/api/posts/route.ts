@@ -94,3 +94,20 @@ export async function PUT(req: Request, res: Response) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request, res: Response) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  if (!id) {
+    return NextResponse.json({ error: 'Missing Post ID' }, { status: 400 });
+  }
+
+  try {
+    const query = 'DELETE FROM posts WHERE id = $1';
+    await pool.query(query, [id]);
+    
+    return NextResponse.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
+  }
+}

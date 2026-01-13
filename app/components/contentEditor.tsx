@@ -21,7 +21,7 @@ export default function ContentEditor({ edtiorChange, uploadProgress, existingPo
       // Tell the parent (Layout) about the loaded content immediately
       edtiorChange(existingPost.title, existingPost.content, existingPost.slug);
     }
-  }, [existingPost]);
+  }, []);
 
   const ProgressBar = () => {
     if (!uploadProgress) return null;

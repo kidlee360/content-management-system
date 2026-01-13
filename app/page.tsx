@@ -41,7 +41,7 @@ export default function CMSPostEditor() {
     setIsLoading(true);
     try {
       // Create an API route or use your existing post fetcher
-      const response = await axios.get(`/api/posts/${id}`); 
+      const response = await axios.get(`/api/posts/editor?id=${id}`); 
       const post = response.data;
       
       setPostData({
@@ -103,8 +103,9 @@ export default function CMSPostEditor() {
     try {
       if (isEditMode && postId) {
         // UPDATE EXISTING
-        await axios.put(`/api/posts/${postId}`, payload);
+        await axios.put(`/api/posts`, payload);
         alert('Post updated successfully!');
+        router.push('/admin/dashboard');
       } else {
         // CREATE NEW
         await axios.post('/api/posts', payload);
@@ -115,6 +116,19 @@ export default function CMSPostEditor() {
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Failed to save post.');
+    }
+  };
+
+  //--------ADD A BUTTON TO DISCARD CHANGES WHEN YOURE READY TO USE THIS--------//
+  const discardChanges = () => {
+    if (confirm("Discard all unsaved changes?")) {
+      if (isEditMode) {
+        // Re-fetch the original data from the DB
+        fetchExistingPost(postId!);
+      } else {
+        // Reset to empty for a new post
+        setPostData({ title: '', content: '', slug: '', featuredImageUrl: '', category: '' });
+      }
     }
   };
 

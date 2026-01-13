@@ -16,6 +16,7 @@ interface BlogPostDisplay {
   updated_at: string;
   created_at?: string;
   views: number;
+  featured_image_url?: string;
 }
 
 const [posts, setPosts] = useState<BlogPostDisplay[]>([]);
@@ -134,82 +135,124 @@ useEffect(() => {
   if (!posts || posts.length === 0) return <div className="p-8 text-center">No posts found.</div>;
 
   return (
-    <article className="max-w-4xl mx-auto px-4 py-12">
-      {/* Header */}
-      <header className="mb-6">
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-4">Blog</h1>
-        <p className="text-gray-600">Browse recent posts. Use the search and filters to narrow results.</p>
-      </header>
+    <div className="min-h-screen bg-gray-50/50 px-4 py-16">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* --- SECTION: Header --- */}
+        <header className="mb-12 text-center">
+          <h1 className="text-5xl font-black text-gray-900 tracking-tight mb-4">
+            Insights & Stories
+          </h1>
+          <p className="text-xl text-gray-500 max-w-2xl mx-auto">
+            Exploring the intersection of technology, design, and business strategy.
+          </p>
+        </header>
 
-      {/* Controls: Search, Category Filter, Sort */}
-      <div className="flex flex-col md:flex-row md:items-center md:gap-4 mb-6">
-        <div className="flex items-center gap-2 w-full md:w-1/2">
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDownSearch}
-            className="flex-1 px-3 py-2 border rounded-md"
-            placeholder="Search by title or slug"
-            aria-label="Search posts by title or slug"
-          />
-          <button onClick={onSearch} className="px-3 py-2 bg-blue-600 text-white rounded-md">Search</button>
+        {/* --- SECTION: Search & Filter Bar --- */}
+        <div className="mb-12 space-y-6">
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+            
+            {/* Search Input with Icon */}
+            <div className="relative w-full md:w-96">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </span>
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                placeholder="Search articles..."
+              />
+            </div>
+
+            {/* Sort & Category Dropdowns - Clean Styles */}
+            <div className="flex gap-3 w-full md:w-auto">
+              <select 
+                value={categoryFilter} 
+                onChange={(e) => setCategoryFilter(e.target.value)} 
+                className="flex-1 md:flex-none px-4 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm text-sm font-medium text-gray-700 outline-none"
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c === 'All' ? 'All Categories' : c}</option>
+                ))}
+              </select>
+
+              <select 
+                value={sortOption} 
+                onChange={(e) => setSortOption(e.target.value as any)} 
+                className="flex-1 md:flex-none px-4 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm text-sm font-medium text-gray-700 outline-none"
+              >
+                <option value="newest">Latest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 mt-3 md:mt-0">
-          <label className="text-sm text-gray-600">Category</label>
-          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="px-3 py-2 border rounded-md">
-            {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-
-          <label className="text-sm text-gray-600">Sort</label>
-          <select value={sortOption} onChange={(e) => setSortOption(e.target.value as any)} className="px-3 py-2 border rounded-md">
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-            <option value="category-asc">Category A → Z</option>
-            <option value="category-desc">Category Z → A</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Posts list */}
-      <section>
+        {/* --- SECTION: Posts Grid --- */}
         {filteredPosts.length === 0 ? (
-          <div className="text-center py-8">No posts match your filters.</div>
+          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
+            <p className="text-gray-400 text-lg">No articles found matching your criteria.</p>
+          </div>
         ) : (
-          filteredPosts.map((p) => {
-            const dateStr = p.updated_at || p.created_at || null;
-            const formatted = dateStr ? new Date(String(dateStr)).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown';
-            const excerpt = getExcerpt(p.content);
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPosts.map((p) => {
+              const dateStr = p.updated_at || p.created_at || null;
+              const formatted = dateStr ? new Date(String(dateStr)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown';
+              const excerpt = getExcerpt(p.content, 120);
 
-            return (
-              <article key={p.id} className="mb-8 border-b pb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">{p.title}</h2>
-                <div className="text-gray-500 text-sm flex items-center gap-3">
-                  <span>Published on {formatted}</span>
-                  <span>•</span>
-                  <span className="text-gray-700">{p.category}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    {p.views || 0} views
-                  </span>
-                </div>
-                <p className="text-gray-700 mb-3">{excerpt}</p>
-                {p.slug ? (
-                  <Link href={`/blog?slug=${p.slug}`} className="text-blue-600 hover:underline">Read more</Link>
-                ) : (
-                  <span className="text-gray-400">Read more</span>
-                )}
-              </article>
-            );
-          })
+              return (
+                <Link key={p.id} href={`/blog?slug=${p.slug}`} className="group">
+                  <article className="h-full flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    
+                    {/* Featured Image Area */}
+                    <div className="aspect-[16/10] overflow-hidden bg-gray-100 relative">
+                      {p.featured_image_url ? (
+                        <img 
+                          src={p.featured_image_url} 
+                          alt={p.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 text-indigo-300">
+                           <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                      )}
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest text-gray-700 rounded-full shadow-sm">
+                          {p.category || 'General'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex items-center gap-2 text-xs font-medium text-gray-400 mb-3">
+                        <span>{formatted}</span>
+                        <span>•</span>
+                        <span>{p.views || 0} views</span>
+                      </div>
+                      
+                      <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {p.title}
+                      </h2>
+                      
+                      <p className="text-gray-500 text-sm leading-relaxed line-clamp-3 mb-6">
+                        {excerpt}
+                      </p>
+
+                      <div className="mt-auto pt-4 border-t border-gray-50 flex items-center text-sm font-bold text-blue-600">
+                        Read Article 
+                        <svg className="w-4 h-4 ml-1 group-hover:ml-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                      </div>
+                    </div>
+                  </article>
+                </Link>
+              );
+            })}
+          </div>
         )}
-      </section>
+      </div>
 
       {/* Custom styles for the image floats we built in Tiptap */}
       <style jsx global>{`
@@ -239,6 +282,6 @@ useEffect(() => {
            }
         }  
       `}</style>
-    </article>
+    </div>
   );
 };

@@ -10,15 +10,24 @@ const ImageComponent = ({ node, updateAttributes, deleteNode, selected }: any) =
   };
 
   const isCenter = node.attrs.float === 'center';
-  const wrapperClass = `relative group ${selected ? 'ring-2 ring-blue-500' : ''} ${node.attrs.float === 'left' ? 'float-left mr-4' : node.attrs.float === 'right' ? 'float-right ml-4' : isCenter ? 'w-full flex justify-center' : 'inline-block'}`;
+  const wrapperClass = `relative group transition-all ${
+  node.attrs.float === 'left' ? 'float-left mr-6 mb-4 clear-left' : 
+  node.attrs.float === 'right' ? 'float-right ml-6 mb-4 clear-right' : 
+  isCenter ? 'w-full flex justify-center my-8' : 'inline-block my-4'
+}`;
 
   return (
-    <NodeViewWrapper className={wrapperClass}>
-      <div>
+    <NodeViewWrapper className={wrapperClass} style={{ display: isCenter ? 'flex' : 'inline-block', maxWidth: '100%' }}>
+      <div className="relative">
         <img
           src={node.attrs.src}
-          style={{ width: node.attrs.width, height: 'auto' }}
-          className={`rounded-lg resizable-image ${isCenter ? 'mx-auto block' : 'block'}`}
+          style={{ 
+          width: node.attrs.width, 
+          height: 'auto',
+          // If centered, remove float, otherwise use the attribute
+          float: isCenter ? 'none' : (node.attrs.float || 'none') 
+        }}
+          className={`rounded-lg resizable-image ${selected ? 'ring-4 ring-blue-500 ring-offset-2' : ''}`}
         />
         
         {/* Delete Button - Appears on Hover or Selection */}
