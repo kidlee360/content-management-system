@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
 
-export async function GET( req: Request, res: Response) {
+export async function GET( req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const reportName = searchParams.get('reportName');
   if (reportName === 'publishedPosts') {
@@ -20,7 +20,7 @@ export async function GET( req: Request, res: Response) {
   }
 }
 
-export async function POST(req: Request, res: Response) {
+export async function POST(req: NextRequest) {
   const body = await req.json();
   console.log('Received POST request with body:', body);
   const { title, content, slug, featuredImageUrl, category, status} = body;
@@ -79,7 +79,7 @@ export async function POST(req: Request, res: Response) {
   }
 }
 
-export async function PUT(req: Request, res: Response) {
+export async function PUT(req: NextRequest) {
   const body = await req.json();
   const { id, title, content, slug, featuredImageUrl, category, status } = body;
   const categoryValue = category || 'General';
@@ -95,7 +95,7 @@ export async function PUT(req: Request, res: Response) {
   }
 }
 
-export async function DELETE(req: Request, res: Response) {
+export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (!id) {

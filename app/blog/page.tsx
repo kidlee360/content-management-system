@@ -1,5 +1,6 @@
 // app/blog/page.tsx
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import PostPage from './BlogClient';
 import pool from '@/lib/db';
 
@@ -50,5 +51,9 @@ export async function generateMetadata({ searchParams }: { searchParams: { slug?
 }
 
 export default function Page() {
-  return <PostPage />;
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <PostPage />
+    </Suspense>
+  );
 }
